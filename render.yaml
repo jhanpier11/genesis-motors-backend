@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: genesis-motors-api
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        value: genesis_motors_super_secret_key_2024
