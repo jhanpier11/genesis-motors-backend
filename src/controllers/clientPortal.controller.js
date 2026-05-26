@@ -213,6 +213,8 @@ const clientPortalController = {
       res.status(500).json({ error: 'Error al obtener órdenes' });
     }
   }
+
+  
 };
 
 module.exports = clientPortalController;
