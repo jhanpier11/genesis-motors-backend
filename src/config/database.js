@@ -27,4 +27,31 @@ const sequelize = new Sequelize(
   }
 );
 
+module.exports = sequelize;const { Sequelize } = require('sequelize');
+require('dotenv').config();
+
+const sequelize = new Sequelize({
+  username: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT || 3306,
+  dialect: 'mysql',
+  logging: false, // Desactiva logs SQL en consola
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
+  },
+  dialectOptions: {
+    connectTimeout: 60000,
+    // Configuración SSL robusta para producción en Aiven
+    ssl: process.env.NODE_ENV === 'production' ? {
+      require: true,
+      rejectUnauthorized: false
+    } : false
+  }
+});
+
 module.exports = sequelize;
