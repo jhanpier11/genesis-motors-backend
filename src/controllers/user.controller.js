@@ -80,16 +80,16 @@ const userController = {
       const oldRole = user.rol;
       const newRole = rol || oldRole;
 
+      // CASO 1: Si antes era cliente y ahora NO (se pasa a mecánico, admin, etc.)
       if (oldRole === 'cliente' && newRole !== 'cliente') {
-        // Buscar el registro en clientes por user_id
         const client = await Client.findOne({ where: { user_id: user.id } });
         if (client) {
-  
           await client.destroy();
           console.log(`Cliente ${client.nombre} eliminado de la tabla clientes`);
         }
       }
 
+      // CASO 2: Si antes NO era cliente y ahora SÍ (se asigna rol cliente)
       if (oldRole !== 'cliente' && newRole === 'cliente') {
         let client = await Client.findOne({ where: { email: email || user.email } });
         
@@ -111,6 +111,7 @@ const userController = {
         console.log(`Cliente creado/actualizado para usuario ${user.nombre}`);
       }
 
+      // CASO 3: Sigue siendo cliente, actualizar sus datos en clientes
       if (oldRole === 'cliente' && newRole === 'cliente') {
         const client = await Client.findOne({ where: { user_id: user.id } });
         if (client) {
@@ -148,6 +149,7 @@ const userController = {
     }
   },
 
+  // Desactivar usuario (borrado lógico)
   delete: async (req, res) => {
     try {
       const { id } = req.params;
@@ -164,37 +166,36 @@ const userController = {
       console.error('Error al eliminar usuario:', error);
       res.status(500).json({ error: 'Error al eliminar usuario' });
     }
+  },
 
+  // Eliminar permanentemente un usuario
+  destroy: async (req, res) => {
+    try {
+      const { id } = req.params;
 
-    // Eliminar permanentemente un usuario
-      destroy: async (req, res) => {
-        try {
-          const { id } = req.params;
-
-          // No permitir auto-eliminarse
-          if (req.user.id == id) {
-            return res.status(400).json({ error: 'No puedes eliminar tu propio usuario' });
-          }
-
-          const user = await User.findByPk(id);
-          if (!user) {
-            return res.status(404).json({ error: 'Usuario no encontrado' });
-          }
-
-          // Si es cliente, eliminar también su registro en clientes
-          if (user.rol === 'cliente') {
-            await Client.destroy({ where: { user_id: user.id } });
-          }
-
-          // Eliminar el usuario
-          await user.destroy();
-
-          res.json({ message: 'Usuario eliminado definitivamente' });
-        } catch (error) {
-          console.error('Error al eliminar usuario:', error);
-          res.status(500).json({ error: 'Error al eliminar usuario', details: error.message });
-        }
+      // No permitir auto-eliminarse
+      if (req.user.id == id) {
+        return res.status(400).json({ error: 'No puedes eliminar tu propio usuario' });
       }
+
+      const user = await User.findByPk(id);
+      if (!user) {
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+      }
+
+      // Si es cliente, eliminar también su registro en clientes
+      if (user.rol === 'cliente') {
+        await Client.destroy({ where: { user_id: user.id } });
+      }
+
+      // Eliminar el usuario
+      await user.destroy();
+
+      res.json({ message: 'Usuario eliminado definitivamente' });
+    } catch (error) {
+      console.error('Error al eliminar usuario:', error);
+      res.status(500).json({ error: 'Error al eliminar usuario', details: error.message });
+    }
   },
 
   updateProfile: async (req, res) => {
