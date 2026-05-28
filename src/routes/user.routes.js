@@ -15,6 +15,7 @@ router.delete('/:id/permanent', roleMiddleware('admin'), userController.destroy)
 
 // Rutas de perfil (cualquier usuario autenticado)
 router.put('/profile/update', userController.updateProfile);
-router.put('/change-password', userController.changePassword);
+//router.put('/change-password', userController.changePassword);
+router.put('/change-password', authMiddleware, userController.changePassword);
 
 module.exports = router;
