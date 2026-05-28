@@ -164,6 +164,41 @@ const userController = {
       console.error('Error al eliminar usuario:', error);
       res.status(500).json({ error: 'Error al eliminar usuario' });
     }
+
+
+    // Eliminar permanentemente un usuario
+    destroy: async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        // No permitir auto-eliminarse
+        if (req.user.id == id) {
+          return res.status(400).json({ error: 'No puedes eliminar tu propio usuario' });
+        }
+
+        const user = await User.findByPk(id);
+        if (!user) {
+          return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        // Si es cliente, eliminar también su registro en clientes
+        if (user.rol === 'cliente') {
+          await Client.destroy({ where: { user_id: user.id } });
+        }
+
+        // Eliminar el usuario
+        await user.destroy();
+
+        res.json({ message: 'Usuario eliminado definitivamente' });
+      } catch (error) {
+        console.error('Error al eliminar usuario:', error);
+        res.status(500).json({ error: 'Error al eliminar usuario', details: error.message });
+      }
+    }
+
+
+
+
   },
 
   updateProfile: async (req, res) => {
