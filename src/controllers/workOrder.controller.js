@@ -341,6 +341,13 @@ const workOrderController = {
         return res.status(404).json({ error: 'Orden de trabajo no encontrada' });
       }
 
+      // ✅ Bloquear si la orden está cancelada o entregada
+      if (['cancelada', 'entregada'].includes(workOrder.estado)) {
+        return res.status(400).json({ 
+          error: `No se pueden agregar servicios a una orden en estado "${workOrder.estado}"` 
+        });
+      }
+
       let costoAdicional = 0;
 
       for (const servicioItem of servicios) {
