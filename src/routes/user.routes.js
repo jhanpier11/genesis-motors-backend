@@ -11,7 +11,7 @@ router.get('/mechanics', roleMiddleware('admin', 'recepcionista'), userControlle
 router.post('/', roleMiddleware('admin'), userController.create);
 router.put('/:id', roleMiddleware('admin'), userController.update);
 router.delete('/:id', roleMiddleware('admin'), userController.delete);
-router.delete('/:id/permanent', roleMiddleware('admin'), userController.destroy);
+//router.delete('/:id/permanent', roleMiddleware('admin'), userController.destroy);
 
 // Rutas de perfil (cualquier usuario autenticado)
 router.put('/profile/update', userController.updateProfile);
