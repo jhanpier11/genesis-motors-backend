@@ -5,6 +5,10 @@ const { authMiddleware, roleMiddleware } = require('../middleware/auth.middlewar
 
 router.use(authMiddleware);
 
+// Rutas de perfil (cualquier usuario autenticado) -- ANTES de rutas con parámetros
+router.put('/profile/update', userController.updateProfile);
+router.put('/change-password', userController.changePassword);   // <-- movida aquí
+
 // Rutas de administración (solo admin)
 router.get('/', roleMiddleware('admin'), userController.getAll);
 router.get('/mechanics', roleMiddleware('admin', 'recepcionista'), userController.getMechanics);
@@ -12,10 +16,5 @@ router.post('/', roleMiddleware('admin'), userController.create);
 router.put('/:id', roleMiddleware('admin'), userController.update);
 router.delete('/:id', roleMiddleware('admin'), userController.delete);
 router.delete('/:id/permanent', roleMiddleware('admin'), userController.destroy);
-
-// Rutas de perfil (cualquier usuario autenticado)
-router.put('/profile/update', userController.updateProfile);
-//router.put('/change-password', userController.changePassword);
-router.put('/change-password', authMiddleware, userController.changePassword);
 
 module.exports = router;
