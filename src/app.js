@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 
-// Importar rutas
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const clientRoutes = require('./routes/client.routes');
@@ -13,23 +12,21 @@ const dashboardRoutes = require('./routes/dashboard.routes');
 const clientPortalRoutes = require('./routes/clientPortal.routes');
 
 const app = express();
+app.disable('x-powered-by'); 
 
-// Configurar CORS (acepta localhost y la URL de Netlify si se configura)
 app.use(cors({
   origin: [
     'http://localhost:8080',
     'http://localhost:8081',
-    'https://genesis-motors-frontend.vercel.app', // <-- Agrega tu URL de Vercel aquí directamente
+    'https://genesis-motors-frontend.vercel.app',
     process.env.FRONTEND_URL
   ].filter(Boolean),
   credentials: true
 }));
 
-// Middlewares globales
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/clients', clientRoutes);
@@ -40,7 +37,6 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/client-portal', clientPortalRoutes);
 
-// Ruta de prueba
 app.get('/', (req, res) => {
   res.json({ 
     message: 'API Genesis Motors funcionando correctamente',
@@ -48,12 +44,10 @@ app.get('/', (req, res) => {
   });
 });
 
-// Manejo de rutas no encontradas
 app.use((req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
 });
 
-// Middleware de errores
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(500).json({ 
