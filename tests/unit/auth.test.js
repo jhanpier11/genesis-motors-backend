@@ -1,9 +1,10 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 describe('🧪 Pruebas Unitarias - Autenticación', () => {
   
-  const JWT_SECRET = 'genesis_motors_secret_key';
-
+  const JWT_SECRET = crypto.randomBytes(64).toString('hex'); 
+  
   describe('JWT - Generar Token', () => {
     it('✅ Debe generar un token válido', () => {
       const payload = { id: 1, rol: 'admin' };
@@ -11,7 +12,7 @@ describe('🧪 Pruebas Unitarias - Autenticación', () => {
 
       expect(token).toBeDefined();
       expect(typeof token).toBe('string');
-      expect(token.split('.')).toHaveLength(3); // Header.Payload.Signature
+      expect(token.split('.')).toHaveLength(3);
     });
 
     it('✅ El token debe contener los datos del payload', () => {
@@ -33,9 +34,9 @@ describe('🧪 Pruebas Unitarias - Autenticación', () => {
 
     it('❌ Debe fallar con secret incorrecto', () => {
       const token = jwt.sign({ id: 1 }, JWT_SECRET);
-      
+      const WRONG_SECRET = crypto.randomBytes(64).toString('hex');
       expect(() => {
-        jwt.verify(token, 'wrong_secret');
+        jwt.verify(token, WRONG_SECRET);
       }).toThrow();
     });
   });
