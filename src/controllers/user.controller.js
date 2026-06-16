@@ -67,6 +67,61 @@ const userController = {
     }
   },
 
+  // ============================================
+  // NUEVA FUNCIÓN AUXILIAR (Para reducir complejidad cognitiva en update)
+  // ============================================
+  async sincronizarCliente(user, oldRole, newRole, datos) {
+    const { nombre, email, telefono } = datos;
+
+    // CASO 1: Si antes era cliente y ahora NO (se pasa a mecánico, admin, etc.)
+    if (oldRole === 'cliente' && newRole !== 'cliente') {
+      const client = await Client.findOne({ where: { user_id: user.id } });
+      if (client) {
+        await client.destroy();
+        console.log(`Cliente ${client.nombre} eliminado de la tabla clientes`);
+      }
+      return;
+    }
+
+    // CASO 2: Si antes NO era cliente y ahora SÍ (se asigna rol cliente)
+    if (oldRole !== 'cliente' && newRole === 'cliente') {
+      let client = await Client.findOne({ where: { email: email || user.email } });
+      
+      if (client) {
+        await client.update({
+          user_id: user.id,
+          nombre: nombre || user.nombre,
+          email: email || user.email,
+          telefono: telefono || user.telefono || client.telefono
+        });
+      } else {
+        await Client.create({
+          nombre: nombre || user.nombre,
+          email: email || user.email,
+          telefono: telefono || user.telefono || null,
+          user_id: user.id
+        });
+      }
+      console.log(`Cliente creado/actualizado para usuario ${user.nombre}`);
+      return;
+    }
+
+    // CASO 3: Sigue siendo cliente, actualizar sus datos en clientes
+    if (oldRole === 'cliente' && newRole === 'cliente') {
+      const client = await Client.findOne({ where: { user_id: user.id } });
+      if (client) {
+        await client.update({
+          nombre: nombre || user.nombre,
+          email: email || user.email,
+          telefono: telefono || user.telefono || client.telefono
+        });
+      }
+    }
+  },
+
+  // ============================================
+  // UPDATE REFACTORIZADO (Complejidad reducida)
+  // ============================================
   update: async (req, res) => {
     try {
       const { id } = req.params;
@@ -80,49 +135,10 @@ const userController = {
       const oldRole = user.rol;
       const newRole = rol || oldRole;
 
-      // CASO 1: Si antes era cliente y ahora NO (se pasa a mecánico, admin, etc.)
-      if (oldRole === 'cliente' && newRole !== 'cliente') {
-        const client = await Client.findOne({ where: { user_id: user.id } });
-        if (client) {
-          await client.destroy();
-          console.log(`Cliente ${client.nombre} eliminado de la tabla clientes`);
-        }
-      }
+      // Llamada a la función auxiliar para manejar la lógica de clientes
+      await userController.sincronizarCliente(user, oldRole, newRole, { nombre, email, telefono });
 
-      // CASO 2: Si antes NO era cliente y ahora SÍ (se asigna rol cliente)
-      if (oldRole !== 'cliente' && newRole === 'cliente') {
-        let client = await Client.findOne({ where: { email: email || user.email } });
-        
-        if (client) {
-          await client.update({
-            user_id: user.id,
-            nombre: nombre || user.nombre,
-            email: email || user.email,
-            telefono: telefono || user.telefono || client.telefono
-          });
-        } else {
-          await Client.create({
-            nombre: nombre || user.nombre,
-            email: email || user.email,
-            telefono: telefono || user.telefono || null,
-            user_id: user.id
-          });
-        }
-        console.log(`Cliente creado/actualizado para usuario ${user.nombre}`);
-      }
-
-      // CASO 3: Sigue siendo cliente, actualizar sus datos en clientes
-      if (oldRole === 'cliente' && newRole === 'cliente') {
-        const client = await Client.findOne({ where: { user_id: user.id } });
-        if (client) {
-          await client.update({
-            nombre: nombre || user.nombre,
-            email: email || user.email,
-            telefono: telefono || user.telefono || client.telefono
-          });
-        }
-      }
-
+      // Actualizar datos del usuario principal
       const updateData = {};
       if (nombre) updateData.nombre = nombre;
       if (email) updateData.email = email;
